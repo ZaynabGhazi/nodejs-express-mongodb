@@ -16,7 +16,7 @@ exports.signup = (req,res)=>{
   //check validator result
   const errors = validationResult(req);
   if (!errors.isEmpty()){
-    return res.status(400).json({
+    return res.status(401).json({
       errors: errors.array()
     });
   }
@@ -35,7 +35,7 @@ exports.signup = (req,res)=>{
       email: req.body.email
     }).then(data=>{
       if (data){
-        return res.status(400).json({mssg: "User Already Exists!"});
+        return res.status(402).json({mssg: "User Already Exists!"});
       }
       //new user:
       user = new User({
@@ -49,7 +49,7 @@ exports.signup = (req,res)=>{
       bcrypt.hash(password,10, (err, hash) => {
        if (err) {
         console.error(err)
-        res.status(501).send({
+        res.status(500).send({
           message: err.message || "Error hashing password"
         });
         }
