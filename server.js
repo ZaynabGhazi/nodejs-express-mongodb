@@ -16,6 +16,7 @@ app.get("/",(req,res)=>{
 
 //port setup
 require("./app/routes/user.routes")(app);
+require("./app/routes/post_routes")(app);
 const PORT = 3000;
 app.listen(PORT,()=>{
   console.log('Elevate server is running on port '+ PORT);
