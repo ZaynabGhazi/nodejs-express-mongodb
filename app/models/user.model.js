@@ -1,3 +1,4 @@
+var ObjectId = require('mongodb').ObjectID;
 module.exports = mongoose=>{
   const User= mongoose.model(
     "user",
@@ -15,6 +16,12 @@ module.exports = mongoose=>{
         firstname:String,
         lastname:String,
         status:Boolean,
+        connections:[{
+          id: ObjectId
+        }],
+        requests: [{
+          id: ObjectId
+        }],
         createAt: {
           type: Date,
           default: Date.now()

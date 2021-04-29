@@ -158,6 +158,47 @@ exports.loggedIn = (req,res)=>{
   }
 }
 
+exports.searchUser = (req,res) =>{
+  try{
+    User.find({"firstname":req.query.firstname}).then(data=>{
+      console.log("in search user!");
+      console.log(req.query.firstname);
+      console.log(data[0].firstname);
+      console.log(data[0]);
+      if (!data){
+      res.status(502).json({
+      message: "Error fetching alice!"});
+      }
+      else res.json(data);
+    });
+  } catch(e){
+    res.send({
+      message: "Error fetching alice!"});
+  }
+}
+
+exports.sendConnectRequest = (req, res) => {
+  //assume req has userid and the id of the receiver
+  try{
+    User.update({"_id":req.query.id_receiver}, {$push:{requests: req.query.id_user}});
+  } catch(e){
+    res.send({
+      message: "Error sending request!"});
+  }
+}
+
+exports.acceptConnectRequest = (req, res) => {
+  //assume req has userid and the id of the sender
+  try{
+    User.update({"_id":req.query.id_user}, {$push:{connections: req.query.id_sender}}); // add the sender into user's network.
+    User.update({"_id":req.query.id_sender}, {$push:{connections: req.query.id_user}}); // add user to the sender's network.
+    User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+  } catch(e){
+    res.send({
+      message: "Error accepting request!"});
+  }
+}
+
 
 
 //Create and store a new user

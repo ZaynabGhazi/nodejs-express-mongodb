@@ -30,5 +30,11 @@ module.exports = app =>{
   //current user
   router.get("/me", auth,users.loggedIn);
 
+  router.get("/find", users.searchUser);
+
+  router.get("/connect", users.sendConnectRequest);
+
+  router.get("/accept", users.sendConnectRequest);
+
   app.use('/api/user',router);
 }
