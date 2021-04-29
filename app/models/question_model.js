@@ -26,8 +26,8 @@ module.exports = mongoose=>{
             type: Array
           }],
           image: {
-            data: Buffer,
-            contentType: String
+            type: String,
+            required: false
           }
       }
     )

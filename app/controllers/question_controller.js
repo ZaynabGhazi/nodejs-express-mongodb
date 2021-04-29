@@ -10,29 +10,15 @@ module.exports = {
       content,
       userId,
       userName,
+      image
     } = req.body;
-    if (req.file) {
-    const img =  {
-            data: fs.readFileSync(path.join(__dirname + '../../../uploads/' + req.file.filename)),
-            contentType: 'image/*'
-        }
-
-const post = null;
      post = new Question({
       title: title,
       content: content,
       _creator: userId,
       creatorName: userName,
-      image: img
-    });
-  } else {
-     post = new Question({
-      title: title,
-      content: content,
-      _creator: userId,
-      creatorName: userName
+      image: image
         });
-  }
 
     post.save().then((newQuestion) => {
       return res.status(200).json({
