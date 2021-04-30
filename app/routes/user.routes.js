@@ -36,5 +36,7 @@ module.exports = app =>{
 
   router.get("/accept", users.sendConnectRequest);
 
+  router.get("/notify", users.notify);
+
   app.use('/api/user',router);
 }

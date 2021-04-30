@@ -4,7 +4,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validationResult = require("express-validator").validationResult;
 const User = db.users;
-
+var ObjectId = require('mongodb').ObjectID;
+var mongoose = require('mongoose');
+const { query } = require("express-validator");
 
 //signup
 exports.signup = (req,res)=>{
@@ -179,13 +181,40 @@ exports.searchUser = (req,res) =>{
 
 exports.sendConnectRequest = (req, res) => {
   //assume req has userid and the id of the receiver
+  console.log("in sendConnectRequest!");
+  console.log(req.query);
+  console.log(req.query.id_sender);
+  console.log(req.query.id_receiver);
+  //var xyz = mongoose.Types.ObjectId("shu37gdvkj238");
+  var id_sender = mongoose.Types.ObjectId(req.query.id_sender);
+  var id_receiver = mongoose.Types.ObjectId(req.query.id_receiver);
+
   try{
-    User.update({"_id":req.query.id_receiver}, {$push:{requests: req.query.id_user}});
-  } catch(e){
-    res.send({
-      message: "Error sending request!"});
-  }
+    User.find({requests:{$in:[id_sender]}}).then(data =>{ //check if user is in requests list already; if yes, return
+      if(data){
+        res.status(400).json({
+          message: "sender already in requests!"});
+          }
+      });
+
+      User.find({connections:{$in:[id_sender]}}).then(data =>{ //check if user is in connection list already; if yes, return
+        if(data){
+          res.status(400).json({
+            message: "sender already in connections!"});
+            }
+        });
+
+      User.update({"_id":id_receiver}, {$push:{requests: id_sender}}); // add the sender's id to the receiver's requests
+      res.send({
+      message: "Send request succeeds!"});
+
+    }catch(e){
+      res.send({
+        message: "Error sending request!"});
+    }
+
 }
+
 
 exports.acceptConnectRequest = (req, res) => {
   //assume req has userid and the id of the sender
@@ -198,6 +227,40 @@ exports.acceptConnectRequest = (req, res) => {
       message: "Error accepting request!"});
   }
 }
+
+exports.notify = (req, res)=>{
+  var array = [];
+  try{
+  if(Array.isArray(req.query.request)){
+    console.log("is array!");
+    for(i = 0; i < req.query.request.length; i++){
+        User.findById(req.query.request[i]).then(data=>{
+          if(!data){res.status(502).json({
+            message: "Error fetching request!"});
+          }
+          else{
+            console.log("find in request");
+            console.log(data);
+            array.push(data);
+          } 
+        })
+    }
+    res.json(array);
+  }
+    else{
+        array.push(User.findById(req.query.request));
+        res.json(array);
+    }
+    // console.log(array.length);
+    // console.log(array);
+    // res.json(array);
+  }
+  catch(e){
+    res.send({
+      message: "Error fetching request!"});
+  }
+}
+
 
 
 
