@@ -276,24 +276,20 @@ exports.acceptConnectRequest = (req, res) => {
 }
 
 exports.notify = (req, res)=>{
-  var arr = [];
-  console.log(req.query.request);
-
-  for(i = 0; i < req.query.request.length; i++){
-    console.log(req.query.request[i]);
-    User.findById(req.query.request[i], function (err, docs) {
-      if (err){
-          console.log(err);
-      }
+  try{
+    User.find({ "_id": { "$in": req.query.request}}).then(data=>{
+      if(!data){
+        res.status(502).json({
+        message: "Error fetching user by firstname!"});
+        }
       else{
-          arr.push(docs);
-          console.log("Result : ", docs);
+        res.json(data);
       }
-  });
-}
-console.log("HERE!");
-res.send(arr);
-res.set("Connection", "close");
+    })
+  }catch(e){
+    res.send({
+      message: "Error fetching users!"});
+  }
 }
 
 
