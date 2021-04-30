@@ -160,7 +160,7 @@ exports.loggedIn = (req,res)=>{
   }
 }
 
-exports.searchUser = (req,res) =>{
+exports.searchUserByFirstname = (req,res) =>{
   try{
     User.find({"firstname":req.query.firstname}).then(data=>{
       console.log("in search user!");
@@ -169,13 +169,33 @@ exports.searchUser = (req,res) =>{
       console.log(data[0]);
       if (!data){
       res.status(502).json({
-      message: "Error fetching alice!"});
+      message: "Error fetching user by firstname!"});
       }
       else res.json(data);
     });
   } catch(e){
     res.send({
-      message: "Error fetching alice!"});
+      message: "Error fetching user by firstname!"});
+  }
+}
+
+
+exports.searchUserByLastName = (req,res) =>{
+  try{
+    User.find({"lastname":req.query.lastname}).then(data=>{
+      console.log("in search user!");
+      console.log(req.query.lastname);
+      console.log(data[0].lastname);
+      console.log(data[0]);
+      if (!data){
+      res.status(502).json({
+      message: "Error fetching user by lastname!"});
+      }
+      else res.json(data);
+    });
+  } catch(e){
+    res.send({
+      message: "Error fetching user by lastname!"});
   }
 }
 
@@ -213,6 +233,8 @@ exports.sendConnectRequest = (req, res) => {
                         console.log(err);
                        }else{
                         console.log("updated:", docs);
+                        res.send({
+                          message: "Connect Succeeds!"});
                        }
                      });//.then(data =>{
                     //   console.log("here!");
