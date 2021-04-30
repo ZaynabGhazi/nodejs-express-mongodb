@@ -16,12 +16,14 @@ module.exports = mongoose=>{
         firstname:String,
         lastname:String,
         status:Boolean,
-        connections:[{
-          id: ObjectId
-        }],
-        requests: [{
-          id: ObjectId
-        }],
+        // connections:[{
+        //   type: Array
+        // }],
+        connections: [String],
+        // requests: [{
+        //   type: Array
+        // }],
+        requests: [String],
         createAt: {
           type: Date,
           default: Date.now()

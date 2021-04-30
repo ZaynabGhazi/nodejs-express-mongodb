@@ -186,29 +186,54 @@ exports.sendConnectRequest = (req, res) => {
   console.log(req.query.id_sender);
   console.log(req.query.id_receiver);
   //var xyz = mongoose.Types.ObjectId("shu37gdvkj238");
-  var id_sender = mongoose.Types.ObjectId(req.query.id_sender);
-  var id_receiver = mongoose.Types.ObjectId(req.query.id_receiver);
-
+  var id_sender = (mongoose.Types.ObjectId)(req.query.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.query.id_receiver);
+  console.log("!!!!!!!!!");
+ 
   try{
-    User.find({requests:{$in:[id_sender]}}).then(data =>{ //check if user is in requests list already; if yes, return
-      if(data){
-        res.status(400).json({
-          message: "sender already in requests!"});
-          }
-      });
+    console.log("#########");
 
-      User.find({connections:{$in:[id_sender]}}).then(data =>{ //check if user is in connection list already; if yes, return
-        if(data){
-          res.status(400).json({
-            message: "sender already in connections!"});
-            }
-        });
-
-      User.update({"_id":id_receiver}, {$push:{requests: id_sender}}); // add the sender's id to the receiver's requests
-      res.send({
-      message: "Send request succeeds!"});
+    /******DO NOT DELETE THE COMMENTED CODE ******************/
+    // User.findById(id_receiver).find({requests: id_sender}).then(data =>{ //check if user is in requests list already; if yes, return
+    //   if(data){
+    //     console.log("error1!!!");
+    //     res.status(400).json({
+    //       message: "sender already in requests!"});
+    //       }
+    //       else{
+    //         User.findById(id_receiver).find({connections: id_sender}).then(data =>{ //check if user is in connection list already; if yes, return
+    //           if(data){
+    //             console.log("error2!!!");
+    //             res.status(400).json({
+    //               message: "sender already in connections!"});
+    //               }
+     //              else{
+                     User.findByIdAndUpdate(id_receiver, {$push:{requests: id_sender}},{upsert:true},function(err, docs){
+                       if(err){
+                        console.log(err);
+                       }else{
+                        console.log("updated:", docs);
+                       }
+                     });//.then(data =>{
+                    //   console.log("here!");
+                    //   console.log(data);
+                    //   res.send({
+                    //     message: "Send request succeeds!"});
+                    // }).catch((err)=>{
+                    //   console.log("@@@@@@@@");
+                    //   res.status(400).json({
+                    //     message: "could not update"});
+                    // }); // add the sender's id to the receiver's requests
+                    // res.send({
+                    // message: "Send request succeeds!"});
+              
+                  //}
+             // });
+         // }
+      //});
 
     }catch(e){
+      console.log("error3!!!");
       res.send({
         message: "Error sending request!"});
     }
@@ -229,36 +254,24 @@ exports.acceptConnectRequest = (req, res) => {
 }
 
 exports.notify = (req, res)=>{
-  var array = [];
-  try{
-  if(Array.isArray(req.query.request)){
-    console.log("is array!");
-    for(i = 0; i < req.query.request.length; i++){
-        User.findById(req.query.request[i]).then(data=>{
-          if(!data){res.status(502).json({
-            message: "Error fetching request!"});
-          }
-          else{
-            console.log("find in request");
-            console.log(data);
-            array.push(data);
-          } 
-        })
-    }
-    res.json(array);
-  }
-    else{
-        array.push(User.findById(req.query.request));
-        res.json(array);
-    }
-    // console.log(array.length);
-    // console.log(array);
-    // res.json(array);
-  }
-  catch(e){
-    res.send({
-      message: "Error fetching request!"});
-  }
+  var arr = [];
+  console.log(req.query.request);
+
+  for(i = 0; i < req.query.request.length; i++){
+    console.log(req.query.request[i]);
+    User.findById(req.query.request[i], function (err, docs) {
+      if (err){
+          console.log(err);
+      }
+      else{
+          arr.push(docs);
+          console.log("Result : ", docs);
+      }
+  });
+}
+console.log("HERE!");
+res.send(arr);
+res.set("Connection", "close");
 }
 
 
