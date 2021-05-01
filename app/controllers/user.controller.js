@@ -4,7 +4,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validationResult = require("express-validator").validationResult;
 const User = db.users;
-
+var ObjectId = require('mongodb').ObjectID;
+var mongoose = require('mongoose');
+const { query } = require("express-validator");
 
 //signup
 exports.signup = (req,res)=>{
@@ -193,6 +195,187 @@ exports.loggedIn = (req,res)=>{
     message: "Error fetching user!"});
   }
 }
+
+exports.searchUserByFirstname = (req,res) =>{
+  try{
+    User.find({"firstname":req.query.firstname}).then(data=>{
+      console.log("in search user!");
+      console.log(req.query.firstname);
+      console.log(data[0].firstname);
+      console.log(data[0]);
+      if (!data){
+      res.status(502).json({
+      message: "Error fetching user by firstname!"});
+      }
+      else res.json(data);
+    });
+  } catch(e){
+    res.send({
+      message: "Error fetching user by firstname!"});
+  }
+}
+
+
+exports.searchUserByLastName = (req,res) =>{
+  try{
+    User.find({"lastname":req.query.lastname}).then(data=>{
+      console.log("in search user!");
+      console.log(req.query.lastname);
+      console.log(data[0].lastname);
+      console.log(data[0]);
+      if (!data){
+      res.status(502).json({
+      message: "Error fetching user by lastname!"});
+      }
+      else res.json(data);
+    });
+  } catch(e){
+    res.send({
+      message: "Error fetching user by lastname!"});
+  }
+}
+
+exports.sendConnectRequest = (req, res) => {
+  //assume req has userid and the id of the receiver
+  console.log("in sendConnectRequest!");
+  console.log(req.query);
+  console.log(req.query.id_sender);
+  console.log(req.query.id_receiver);
+  //var xyz = mongoose.Types.ObjectId("shu37gdvkj238");
+  var id_sender = (mongoose.Types.ObjectId)(req.query.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.query.id_receiver);
+  console.log("!!!!!!!!!");
+ 
+  try{
+    console.log("#########");
+
+    /******DO NOT DELETE THE COMMENTED CODE ******************/
+    // User.findById(id_receiver).find({requests: id_sender}).then(data =>{ //check if user is in requests list already; if yes, return
+    //   if(data){
+    //     console.log("error1!!!");
+    //     res.status(400).json({
+    //       message: "sender already in requests!"});
+    //       }
+    //       else{
+    //         User.findById(id_receiver).find({connections: id_sender}).then(data =>{ //check if user is in connection list already; if yes, return
+    //           if(data){
+    //             console.log("error2!!!");
+    //             res.status(400).json({
+    //               message: "sender already in connections!"});
+    //               }
+     //              else{
+                     User.findByIdAndUpdate(id_receiver, {$push:{requests: id_sender}},{upsert:true},function(err, docs){
+                       if(err){
+                        console.log(err);
+                       }else{
+                        console.log("updated:", docs);
+                        res.send({
+                          message: "Connect Succeeds!"});
+                       }
+                     });//.then(data =>{
+                    //   console.log("here!");
+                    //   console.log(data);
+                    //   res.send({
+                    //     message: "Send request succeeds!"});
+                    // }).catch((err)=>{
+                    //   console.log("@@@@@@@@");
+                    //   res.status(400).json({
+                    //     message: "could not update"});
+                    // }); // add the sender's id to the receiver's requests
+                    // res.send({
+                    // message: "Send request succeeds!"});
+              
+                  //}
+             // });
+         // }
+      //});
+
+    }catch(e){
+      console.log("error3!!!");
+      res.send({
+        message: "Error sending request!"});
+    }
+
+}
+
+
+exports.acceptConnectRequest = (req, res) => {
+  //assume req has userid and the id of the sender
+
+  var id_sender = (mongoose.Types.ObjectId)(req.query.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.query.id_receiver);
+  try{
+    // User.update({"_id":req.query.id_user}, {$push:{connections: req.query.id_sender}}); // add the sender into user's network.
+    // User.update({"_id":req.query.id_sender}, {$push:{connections: req.query.id_user}}); // add user to the sender's network.
+    // User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+
+    User.findByIdAndUpdate(id_receiver, {$push:{connections: id_sender}},{upsert:true},function(err, docs){
+      if(err){
+      console.log("HELLO!!!");
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+       res.send({
+        message: "Connect Succeeds!"});
+      //  res.send({
+      //    message: "Connect Succeeds!"});    
+       }
+    });
+
+    User.findByIdAndUpdate(id_sender, {$push:{connections: id_receiver}},{upsert:true},function(err, docs){
+      if(err){
+      console.log("HELLO");
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+      //  res.send({
+      //    message: "Connect Succeeds!"});    
+       }
+    });
+
+    User.findByIdAndUpdate(id_receiver, {$pull:{requests: id_sender}},function(err, docs){
+      if(err){
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+      //  res.send({
+      //    message: "Connect Succeeds!"});    
+       }
+    });
+
+  } catch(e){
+    res.send({
+      message: "Error accepting request!"});
+  }
+}
+
+exports.rejectConnectRequest = (req, res) => {
+  //assume req has userid and the id of the sender
+  try{
+    User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+  } catch(e){
+    res.send({
+      message: "Error rejecting request!"});
+  }
+}
+
+exports.notify = (req, res)=>{
+  try{
+    User.find({ "_id": { "$in": req.query.request}}).then(data=>{
+      if(!data){
+        res.status(502).json({
+        message: "Error fetching user by firstname!"});
+        }
+      else{
+        res.json(data);
+      }
+    })
+  }catch(e){
+    res.send({
+      message: "Error fetching users!"});
+  }
+}
+
 
 
 

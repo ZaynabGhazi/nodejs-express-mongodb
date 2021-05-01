@@ -30,5 +30,15 @@ module.exports = app =>{
   //current user
   router.get("/me", auth,users.loggedIn);
 
+  router.get("/findbyfn", users.searchUserByFirstname);
+
+  router.get("/findbyln", users.searchUserByLastName);
+
+  router.get("/connect", users.sendConnectRequest);
+
+  router.get("/accept", users.acceptConnectRequest);
+
+  router.get("/notify", users.notify);
+
   app.use('/api/user',router);
 }
