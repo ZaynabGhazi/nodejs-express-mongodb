@@ -38,6 +38,8 @@ module.exports = app =>{
 
   router.get("/accept", users.acceptConnectRequest);
 
+  router.get("/reject", users.rejectConnectRequest);
+
   router.get("/notify", users.notify);
 
   app.use('/api/user',router);

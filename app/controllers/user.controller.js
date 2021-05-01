@@ -317,8 +317,6 @@ exports.acceptConnectRequest = (req, res) => {
        console.log("updated:", docs);
        res.send({
         message: "Connect Succeeds!"});
-      //  res.send({
-      //    message: "Connect Succeeds!"});    
        }
     });
 
@@ -328,8 +326,7 @@ exports.acceptConnectRequest = (req, res) => {
        console.log(err);
       }else{
        console.log("updated:", docs);
-      //  res.send({
-      //    message: "Connect Succeeds!"});    
+
        }
     });
 
@@ -338,8 +335,7 @@ exports.acceptConnectRequest = (req, res) => {
        console.log(err);
       }else{
        console.log("updated:", docs);
-      //  res.send({
-      //    message: "Connect Succeeds!"});    
+
        }
     });
 
@@ -350,9 +346,19 @@ exports.acceptConnectRequest = (req, res) => {
 }
 
 exports.rejectConnectRequest = (req, res) => {
-  //assume req has userid and the id of the sender
+  var id_sender = (mongoose.Types.ObjectId)(req.query.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.query.id_receiver);
   try{
-    User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+    User.findByIdAndUpdate(id_receiver, {$pull:{requests: id_sender}},function(err, docs){
+      if(err){
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+       res.send({
+         message: "Reject Succeeds!"});
+       }
+    });
+
   } catch(e){
     res.send({
       message: "Error rejecting request!"});
