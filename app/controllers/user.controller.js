@@ -313,6 +313,16 @@ exports.acceptConnectRequest = (req, res) => {
   }
 }
 
+exports.rejectConnectRequest = (req, res) => {
+  //assume req has userid and the id of the sender
+  try{
+    User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+  } catch(e){
+    res.send({
+      message: "Error rejecting request!"});
+  }
+}
+
 exports.notify = (req, res)=>{
   try{
     User.find({ "_id": { "$in": req.query.request}}).then(data=>{
