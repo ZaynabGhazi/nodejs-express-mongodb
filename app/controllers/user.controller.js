@@ -265,10 +265,48 @@ exports.sendConnectRequest = (req, res) => {
 
 exports.acceptConnectRequest = (req, res) => {
   //assume req has userid and the id of the sender
+
+  var id_sender = (mongoose.Types.ObjectId)(req.query.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.query.id_receiver);
   try{
-    User.update({"_id":req.query.id_user}, {$push:{connections: req.query.id_sender}}); // add the sender into user's network.
-    User.update({"_id":req.query.id_sender}, {$push:{connections: req.query.id_user}}); // add user to the sender's network.
-    User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+    // User.update({"_id":req.query.id_user}, {$push:{connections: req.query.id_sender}}); // add the sender into user's network.
+    // User.update({"_id":req.query.id_sender}, {$push:{connections: req.query.id_user}}); // add user to the sender's network.
+    // User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+
+    User.findByIdAndUpdate(id_receiver, {$push:{connections: id_sender}},{upsert:true},function(err, docs){
+      if(err){
+      console.log("HELLO!!!");
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+       res.send({
+        message: "Connect Succeeds!"});
+      //  res.send({
+      //    message: "Connect Succeeds!"});    
+       }
+    });
+
+    User.findByIdAndUpdate(id_sender, {$push:{connections: id_receiver}},{upsert:true},function(err, docs){
+      if(err){
+      console.log("HELLO");
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+      //  res.send({
+      //    message: "Connect Succeeds!"});    
+       }
+    });
+
+    User.findByIdAndUpdate(id_receiver, {$pull:{requests: id_sender}},function(err, docs){
+      if(err){
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+      //  res.send({
+      //    message: "Connect Succeeds!"});    
+       }
+    });
+
   } catch(e){
     res.send({
       message: "Error accepting request!"});
