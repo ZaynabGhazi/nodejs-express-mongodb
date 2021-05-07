@@ -1,8 +1,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require('path');
 
 const app = express();
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+
 var corsOpt = {
   origin:"http://localhost:3000"
 };
@@ -13,6 +18,10 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.get("/",(req,res)=>{
   res.json({message:"Server for elevate running."})
 });
+
+// app.get('/finduser', function(req, res){
+//   res.render('user_search');
+// });
 
 //port setup
 require("./app/routes/user.routes")(app);

@@ -36,9 +36,18 @@ module.exports = app =>{
 
   router.get("/connect", users.sendConnectRequest);
 
+  //send connect request for web
+  router.post("/connect", users.sendConnectRequestWeb);
+
   router.get("/accept", users.acceptConnectRequest);
 
   router.get("/notify", users.notify);
+
+  //display find result for web
+  router.post("/getfindresult", users.searchUserByFirstnameWeb);
+
+  //display find user page for web
+  router.get("/finduser", users.findUserWeb);
 
   app.use('/api/user',router);
 }

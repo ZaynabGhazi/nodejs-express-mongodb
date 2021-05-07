@@ -179,6 +179,45 @@ exports.searchUserByFirstname = (req,res) =>{
   }
 }
 
+exports.searchUserByFirstnameWeb = (req,res) =>{
+  try{
+    if(req.body.attribute == "firstname"){
+      User.find({"firstname": req.body.input}).then(data=>{
+        console.log("in search user web!");
+        if (!data){
+        console.log("no data");
+        res.status(502).json({
+        message: "Error fetching user by firstname!"});
+        }
+        else {
+          console.log(data);
+          res.render('search_result', result = data)}
+      });
+    }
+    else{
+      User.find({"lastname": req.body.input}).then(data=>{
+        console.log("in search user web!");
+        if (!data){
+        console.log("no data");
+        res.status(502).json({
+        message: "Error fetching user by lastname!"});
+        }
+        else {
+          console.log(data);
+          res.render('search_result', result = data)}
+      });
+
+    }
+  } catch(e){
+    res.send({
+      message: "Error fetching user by firstname!"});
+  }
+}
+
+exports.findUserWeb = (req, res) => {
+  res.render('user_search');
+}
+
 
 exports.searchUserByLastName = (req,res) =>{
   try{
@@ -262,6 +301,30 @@ exports.sendConnectRequest = (req, res) => {
 
 }
 
+exports.sendConnectRequestWeb = (req, res) => {
+  //assume req has userid and the id of the receiver
+  console.log("in sendConnectRequestWeb!");
+  var id_sender = (mongoose.Types.ObjectId)(req.body.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.body.id_receiver);
+  try{
+    User.findByIdAndUpdate(id_receiver, {$push:{requests: id_sender}},{upsert:true},function(err, docs){
+      if(err){
+        console.log(err);
+      }else{
+        console.log("updated:", docs);
+        res.render('connect_feedback', result = {
+             message: "Connect Request Sent!"})}
+      }
+    );
+
+    }catch(e){
+      console.log("error3!!!");
+      res.send({
+        message: "Error sending request!"});
+    }
+
+}
+
 
 exports.acceptConnectRequest = (req, res) => {
   //assume req has userid and the id of the sender
@@ -313,6 +376,7 @@ exports.acceptConnectRequest = (req, res) => {
   }
 }
 
+//For next iteration
 exports.rejectConnectRequest = (req, res) => {
   //assume req has userid and the id of the sender
   try{

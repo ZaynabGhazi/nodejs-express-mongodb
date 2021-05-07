@@ -1,0 +1,13 @@
+doctype html
+html
+    body 
+        h1 Search Results
+        each obj in result
+            p #{obj.firstname} #{obj.lastname}
+            form(action="/api/user/connect",method="post")
+                //- hard-coded Alice Lee for the sender, because we do not have the login user info right now. 
+                input(type = "hidden", name = "id_sender", value = "60861acfb46c2419128a7c9e")
+                //- obj_id is the id of a user in the search result 
+                input(type = "hidden", name = "id_receiver", value = obj._id)
+                input.btn.btn-primary(type='submit', value = 'Connect')
+    

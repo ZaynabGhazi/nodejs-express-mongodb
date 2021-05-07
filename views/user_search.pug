@@ -1,0 +1,10 @@
+block content 
+    h1 Search 
+    form(method='POST', action = '/api/user/getfindresult')
+        #form-group
+            label Search By: 
+            input.form-control(name='attribute', type='text')
+        #form-group
+            label Input: 
+            input.form-control(name='input', type='text')
+        input.btn.btn-primary(type='submit', value = 'Submit')
