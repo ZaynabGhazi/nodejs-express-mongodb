@@ -12,13 +12,17 @@ const { query } = require("express-validator");
 exports.signup = (req,res)=>{
     //check empty body
   if (!req.body.email){
-    res.status(400).send({message: "Content cannot be empty!"});
+    res.status(400);
+    res.set("Connection", "close");
+    res.send({message: "Content cannot be empty!"});
     return;
   }
   //check validator result
   const errors = validationResult(req);
   if (!errors.isEmpty()){
-    return res.status(400).json({
+     res.status(401);
+     res.set("Connection", "close");
+    return res.json({
       errors: errors.array()
     });
   }
@@ -37,7 +41,9 @@ exports.signup = (req,res)=>{
       email: req.body.email
     }).then(data=>{
       if (data){
-        return res.status(400).json({mssg: "User Already Exists!"});
+        res.status(402);
+         res.set("Connection", "close");
+        return res.json({mssg: "User Already Exists!"});
       }
       //new user:
       user = new User({
@@ -51,7 +57,9 @@ exports.signup = (req,res)=>{
       bcrypt.hash(password,10, (err, hash) => {
        if (err) {
         console.error(err)
-        res.status(501).send({
+        res.status(500);
+        res.set("Connection", "close");
+        res.send({
           message: err.message || "Error hashing password"
         });
         }
@@ -70,12 +78,17 @@ exports.signup = (req,res)=>{
                                   },
                                   (err, token)=>{
                                   if (err) throw err;
-                                  res.status(200).json({
+                                  res.status(200);
+                                  res.set("Connection","close");
+                                  res.json({
                                   token});
                                   })
 
                                }).catch(err=>{
-                                  res.status(500).send({
+                                  res.status(500);
+                                  res.set("Connection","close");
+
+                                  res.send({
                                     message: err.message || "Error creating new user"
                                   });
                                 });
@@ -86,7 +99,9 @@ exports.signup = (req,res)=>{
   }
     catch(err){
       console.log(err.message);
-      res.status(500).send("Signup error");
+      res.status(500);
+      res.set("Connection","close");
+      res.send("Signup error");
     }
 
 };
@@ -94,27 +109,36 @@ exports.signup = (req,res)=>{
 //user login
 exports.login = (req, res)=>{
       if (!req.body.email){
-        res.status(400).send({message: "Content cannot be empty!"});
+        res.status(400);
+        res.set("Connection","close");
+         res.send({message: "Content cannot be empty!"});
         return;
       }
         const errors = validationResult(req);
         if (!errors.isEmpty()){
-          return res.status(400).json({
+          res.status(401);
+          res.set("Connection","close");
+          res.json({
             errors: errors.array()
           });
+          return;
         }
         const { email, password} = req.body;
         try{
             User.findOne({
             email: req.body.email}).then(data =>{
                 if (!data){
-                res.status(400).json({
+                res.status(402);
+                res.set("Connection","close");
+                res.json({
                 message: "User does not exist!"});
                 }
                 bcrypt.compare(password,data.password,(err,isMatch)=>{
                     if (err || !isMatch){
 
-                        res.status(400).json({
+                        res.status(403);
+                        res.set("Connection","close");
+                        res.json({
                         message: "Incorrect password!"
                         });
                     }
@@ -129,14 +153,18 @@ exports.login = (req, res)=>{
                           },
                           (err, token)=>{
                            if (err) throw err;
-                           res.status(200).json({
+                           res.status(200);
+                           res.set("Connection","close");
+                           res.json({
                            token});
                            })
                           })
                          })
   } catch(e){
     console.error(e);
-    res.status(500).json({
+    res.status(500);
+    res.set("Connection","close");
+    res.json({
     message: "Login error!"});
   }
 }
@@ -149,12 +177,20 @@ exports.loggedIn = (req,res)=>{
         _id: req.user.id}).then(data=>{
         console.log(req.user.id);
         if (!data){
-        res.status(502).json({
+        res.status(502);
+        res.set("Connection","close");
+        res.json({
         message: "Error fetching current user!"});
         }
-        else res.json(data);
+        else{
+        res.set("Connection","close");
+
+        res.json(data);
+        }
         });
     } catch(e){
+    res.set("Connection","close");
+
     res.send({
     message: "Error fetching user!"});
   }
@@ -344,8 +380,6 @@ exports.acceptConnectRequest = (req, res) => {
        console.log("updated:", docs);
        res.send({
         message: "Connect Succeeds!"});
-      //  res.send({
-      //    message: "Connect Succeeds!"});    
        }
     });
 
@@ -355,8 +389,7 @@ exports.acceptConnectRequest = (req, res) => {
        console.log(err);
       }else{
        console.log("updated:", docs);
-      //  res.send({
-      //    message: "Connect Succeeds!"});    
+
        }
     });
 
@@ -365,8 +398,7 @@ exports.acceptConnectRequest = (req, res) => {
        console.log(err);
       }else{
        console.log("updated:", docs);
-      //  res.send({
-      //    message: "Connect Succeeds!"});    
+
        }
     });
 
@@ -378,9 +410,19 @@ exports.acceptConnectRequest = (req, res) => {
 
 //For next iteration
 exports.rejectConnectRequest = (req, res) => {
-  //assume req has userid and the id of the sender
+  var id_sender = (mongoose.Types.ObjectId)(req.query.id_sender);
+  var id_receiver =(mongoose.Types.ObjectId)(req.query.id_receiver);
   try{
-    User.update({"_id": req.query.id_user}, {$pull: {requests: req.query.id_sender}}); // delete the sender's request from the user's request lists. 
+    User.findByIdAndUpdate(id_receiver, {$pull:{requests: id_sender}},function(err, docs){
+      if(err){
+       console.log(err);
+      }else{
+       console.log("updated:", docs);
+       res.send({
+         message: "Reject Succeeds!"});
+       }
+    });
+
   } catch(e){
     res.send({
       message: "Error rejecting request!"});
